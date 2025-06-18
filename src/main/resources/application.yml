@@ -1,0 +1,19 @@
+server:
+  port: 8001
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://192.168.192.2:8761/eureka} # VPN
+#      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}  # local
+
+spring:
+  application:
+    name: auth-service
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL:http://192.168.192.2:8888} # VPN
+#    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888} # local
+  profiles:
+    active: dev
