@@ -407,6 +407,14 @@ class AuthServiceTest {
         // given
         String userId = "hong123";
 
+        UserEntity user = UserEntity.builder()
+                .userId(userId)
+                .email("hong@example.com")
+                .userType(UserType.GENERAL)
+                .build();
+
+        when(authRepository.findByUserId(userId)).thenReturn(Optional.of(user));
+
         // when
         authService.logout(userId);
 
@@ -421,6 +429,14 @@ class AuthServiceTest {
         // given
         String oldRefreshToken = "valid-refresh-token";
         String userId = "hong123";
+
+        UserEntity user = UserEntity.builder()
+                .userId(userId)
+                .email("hong@example.com")
+                .userType(UserType.GENERAL)
+                .build();
+
+        when(authRepository.findByUserId(userId)).thenReturn(Optional.of(user));
 
         when(jwtTokenProvider.validateToken(oldRefreshToken)).thenReturn(TokenValidationResult.VALID);
         when(jwtTokenProvider.getUserId(oldRefreshToken)).thenReturn(userId);
@@ -458,6 +474,14 @@ class AuthServiceTest {
         // given
         String refreshToken = "valid-refresh-token";
         String userId = "hong123";
+
+        UserEntity user = UserEntity.builder()
+                .userId(userId)
+                .email("hong@example.com")
+                .userType(UserType.GENERAL)
+                .build();
+
+        when(authRepository.findByUserId(userId)).thenReturn(Optional.of(user));
 
         when(jwtTokenProvider.validateToken(refreshToken)).thenReturn(TokenValidationResult.VALID);
         when(jwtTokenProvider.getUserId(refreshToken)).thenReturn(userId);
