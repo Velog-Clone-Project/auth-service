@@ -28,9 +28,9 @@ jobs:
         run: ./gradlew clean build
 
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USER }}/gateway-service:latest .
+        run: docker build -t ${{ secrets.DOCKER_USER }}/auth-service:latest .
 
       - name: Push Docker image
         run: |
           echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
-          docker push ${{ secrets.DOCKER_USER }}/gateway-service:latest
+          docker push ${{ secrets.DOCKER_USER }}/auth-service:latest
