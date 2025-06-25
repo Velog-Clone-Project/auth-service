@@ -88,8 +88,8 @@ spec:
           env:
             - name: CONFIG_SERVER_URL
               value: "http://config-service:8888"
-            - name: EUREKA_SERVER_URL
-              value: "http://discovery-service:8761/eureka"
+#            - name: EUREKA_SERVER_URL
+#              value: "http://discovery-service:8761/eureka"
             - name: SPRING_PROFILES_ACTIVE
               value: "prod"
           readinessProbe:
