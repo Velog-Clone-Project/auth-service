@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  labels:
+    app: auth-service
+spec:
+  selector:
+    app: auth-service
+  ports:
+    - name: http
+      port: 8001
+      targetPort: 8001
+      nodePort: 30081
+  type: NodePort
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  labels:
+    app: auth-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      initContainers:
+        - name: wait-for-config
+          image: curlimages/curl:8.7.1
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Waiting for config-service...";
+              until curl -s http://config-service:8888/actuator/health | grep '"status":"UP"' > /dev/null; do
+                echo "Config-service not ready yet. Waiting...";
+                sleep 3;
+              done
+              echo "Config-service is UP.";
+
+        - name: wait-for-discovery
+          image: curlimages/curl:8.7.1
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Waiting for discovery-service...";
+              until curl -s http://discovery-service:8761/actuator/health | grep '"status":"UP"' > /dev/null; do
+                echo "Discovery-service not ready yet. Waiting...";
+                sleep 3;
+              done
+              echo "Discovery-service is UP.";
+
+        - name: wait-for-database
+          image: busybox:1.36.1
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Waiting for DB (192.168.1.31:3307)...";
+              until nc -z 192.168.1.31 3307; do
+                echo "DB not ready yet. Waiting...";
+                sleep 3;
+              done
+              echo "DB is reachable.";
+
+        - name: wait-for-redis
+          image: busybox:1.36.1
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Waiting for Redis (192.168.1.31:6379)...";
+              until nc -z 192.168.1.31 6379; do
+                echo "Redis not ready yet. Waiting...";
+                sleep 3;
+              done
+              echo "Redis is reachable.";
+
+      containers:
+        - name: auth-service
+          image: lhdmir/auth-service:latest
+          ports:
+            - containerPort: 8001
+          env:
+            - name: CONFIG_SERVER_URL
+              value: "http://config-service:8888"
+            - name: EUREKA_SERVER_URL
+              value: "http://discovery-service:8761/eureka"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8001
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8001
+            initialDelaySeconds: 30
+            periodSeconds: 5
