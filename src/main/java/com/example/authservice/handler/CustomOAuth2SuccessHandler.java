@@ -87,7 +87,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
         // 프론트엔드는 이 경로(/auth/oauth2-redirect)에서 쿠키를 읽고 후속 처리 (회원가입 or 토큰 재요청)
         // TODO: 해당 URL은 실제 프론트엔드 주소로 수정 필요
-        response.sendRedirect("http://localhost/auth/oauth2-redirect");
+        response.sendRedirect("http://localhost:5173/auth/oauth2-redirect");
     }
 
     // 쿠키 생성 메서드
