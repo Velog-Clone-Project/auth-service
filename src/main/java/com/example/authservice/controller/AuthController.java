@@ -4,6 +4,7 @@ import com.example.authservice.dto.*;
 import com.example.authservice.exception.cookie.NoRefreshTokenCookieException;
 import com.example.authservice.exception.cookie.RefreshTokenNotFoundException;
 import com.example.authservice.service.AuthService;
+import com.example.common.dto.ApiResponse;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

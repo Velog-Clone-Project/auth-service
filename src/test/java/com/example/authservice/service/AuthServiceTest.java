@@ -5,7 +5,7 @@ import com.example.authservice.domain.UserType;
 import com.example.authservice.dto.*;
 import com.example.authservice.exception.auth.InvalidCredentialsException;
 import com.example.authservice.exception.auth.SocialAccountLoginOnlyException;
-import com.example.authservice.exception.base.BaseCustomException;
+import com.example.common.exception.BaseCustomException;
 import com.example.authservice.exception.token.InvalidRefreshTokenException;
 import com.example.authservice.exception.token.TokenExpiredException;
 import com.example.authservice.exception.user.*;

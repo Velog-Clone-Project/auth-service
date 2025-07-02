@@ -1,0 +1,3 @@
+[submodule "common-module"]
+	path = common-module
+	url = https://github.com/Velog-Clone-Project/common-module.git

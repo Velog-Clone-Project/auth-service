@@ -1,6 +1,6 @@
 package com.example.authservice.exception.token;
 
-import com.example.authservice.exception.base.BaseCustomException;
+import com.example.common.exception.BaseCustomException;
 
 public class InvalidRefreshTokenException extends BaseCustomException {
 
