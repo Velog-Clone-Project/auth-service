@@ -3,6 +3,7 @@ package com.example.authservice.service;
 import com.example.authservice.domain.UserEntity;
 import com.example.authservice.domain.UserType;
 import com.example.authservice.dto.*;
+import com.example.authservice.event.publisher.UserEventPublisher;
 import com.example.authservice.exception.auth.InvalidCredentialsException;
 import com.example.authservice.exception.auth.SocialAccountLoginOnlyException;
 import com.example.authservice.exception.token.InvalidRefreshTokenException;
@@ -11,6 +12,7 @@ import com.example.authservice.exception.user.*;
 import com.example.authservice.jwt.JwtTokenProvider;
 import com.example.authservice.jwt.TokenValidationResult;
 import com.example.authservice.repository.AuthRepository;
+import com.example.common.event.UserCreatedEvent;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +28,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
     private final RedisService redisService;
+    private final UserEventPublisher userEventPublisher;
 
     // 일반 회원가입
     public SignupResponseDto createUser(SignupRequestDto request) {
@@ -70,9 +73,16 @@ public class AuthService {
         // TODO: 트랜잭션 분리 또는 보상 처리를 고려해야 함 (토큰 저장 실패 시 DB 롤백 불가)
         // save()이후에 에러/예외 발생 시 데이터는 저장됬으나 요청은 실패하기때문에 해결방법이 필요할듯함
         // ex) 만약 이후에 redis에 토큰 저장 중 에러가 발생하면, DB에는 회원 정보가 저장되지만 토큰은 저장되지 않고 요청이 실패하게 된다.
-        authRepository.save(user);
+        UserEntity saved = authRepository.save(user);
 
         // TODO: user-service로 일반 회원가입 이벤트 전송
+        userEventPublisher.sendUserCreatedEvent(
+                UserCreatedEvent.builder()
+                        .userId(saved.getUserId())
+                        .profileName(request.getProfileName())
+                        .bio(request.getBio())
+                        .build()
+        );
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());

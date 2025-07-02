@@ -41,6 +41,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 //    implementation 'org.springframework.cloud:spring-cloud-starter-kubernetes-client'
     implementation 'org.springframework.cloud:spring-cloud-starter-kubernetes-client'
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+    testImplementation 'org.springframework.amqp:spring-rabbit-test'
 
 
     compileOnly 'org.projectlombok:lombok'
@@ -63,6 +65,8 @@ dependencies {
     testImplementation 'org.mockito:mockito-junit-jupiter'
 
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    implementation("com.example.common:common-module")
 }
 
 dependencyManagement {
