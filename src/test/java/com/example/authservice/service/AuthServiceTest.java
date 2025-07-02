@@ -3,8 +3,10 @@ package com.example.authservice.service;
 import com.example.authservice.domain.UserEntity;
 import com.example.authservice.domain.UserType;
 import com.example.authservice.dto.*;
+import com.example.authservice.event.publisher.UserEventPublisher;
 import com.example.authservice.exception.auth.InvalidCredentialsException;
 import com.example.authservice.exception.auth.SocialAccountLoginOnlyException;
+import com.example.common.event.UserCreatedEvent;
 import com.example.common.exception.BaseCustomException;
 import com.example.authservice.exception.token.InvalidRefreshTokenException;
 import com.example.authservice.exception.token.TokenExpiredException;
@@ -47,6 +49,9 @@ class AuthServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private UserEventPublisher userEventPublisher;
+
     // @Mock으로 만들어진 객체들을 자동으로 주입(Inject)
     // 이렇게하면 테스트 대상 클래스(AuthService)의 실제 인스턴스를 생성하고,
     // 그 안의 의존 객체들(@Mock으로 선언된 객체들)을 자동으로 주입해준다.
@@ -77,7 +82,12 @@ class AuthServiceTest {
         String encodedPassword = "encodedPassword";
         when(passwordEncoder.encode(request.getPassword())).thenReturn(encodedPassword);
 
-        UserEntity user = UserEntity.builder().userId(request.getUserId()).email(request.getEmail()).password(encodedPassword).userType(UserType.GENERAL).build();
+        UserEntity user = UserEntity.builder()
+                .userId(request.getUserId())
+                .email(request.getEmail())
+                .password(encodedPassword)
+                .userType(UserType.GENERAL)
+                .build();
 
         // authRepository.save() 메서드로 UserEntity 타입의 데이터를 저장했을때
         // 위에서 생성한 user 객체를 반환하도록 설정
@@ -89,6 +99,9 @@ class AuthServiceTest {
         // even equals()를 오버라이드했더라도, Mockito의 default matching 전략은 reference equality 또는 명시적 매처 사용이다.
         // 따라서 유연하게 매칭하려면 any(UserEntity.class)를 사용해야 테스트가 성공한다.
         when(authRepository.save(ArgumentMatchers.any(UserEntity.class))).thenReturn(user);
+
+       doNothing().when(userEventPublisher).sendUserCreatedEvent(ArgumentMatchers.any(UserCreatedEvent.class));
+
         when(jwtTokenProvider.createAccessToken(user.getUserId())).thenReturn("access-token");
         when(jwtTokenProvider.createRefreshToken(user.getUserId())).thenReturn("refresh-token");
 
@@ -114,6 +127,9 @@ class AuthServiceTest {
 
         verify(authRepository, times(1))
                 .save(ArgumentMatchers.any(UserEntity.class));
+
+        verify(userEventPublisher, times(1))
+                .sendUserCreatedEvent(any(UserCreatedEvent.class));
 
         // 단순히 메서드 호출 여부만 확인하는 것이 아니라, 호출된 인자의 값까지 정확히 일치해야 한다.
         // 예를 들어 storeRefreshToken("otherUser", "otherToken")이 호출되었으면 테스트는 실패한다.
