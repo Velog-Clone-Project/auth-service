@@ -6,8 +6,8 @@ spring:
   application:
     name: auth-service
   config:
-    import: optional:configserver:${CONFIG_SERVER_URL:http://config-service:8888} # telepresence
-  #    import: optional:configserver:${CONFIG_SERVER_URL:http://192.168.192.2:30088} # VPN - NodePort
+#    import: optional:configserver:${CONFIG_SERVER_URL:http://config-service:8888} # telepresence
+      import: optional:configserver:${CONFIG_SERVER_URL:http://192.168.192.2:30088} # VPN - NodePort
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
