@@ -3,7 +3,6 @@ package com.example.authservice.service;
 import com.example.authservice.domain.UserEntity;
 import com.example.authservice.domain.UserType;
 import com.example.authservice.dto.*;
-import com.example.authservice.event.publisher.UserEventPublisher;
 import com.example.authservice.exception.auth.InvalidCredentialsException;
 import com.example.authservice.exception.auth.SocialAccountLoginOnlyException;
 import com.example.authservice.exception.token.InvalidRefreshTokenException;
@@ -12,7 +11,6 @@ import com.example.authservice.exception.user.*;
 import com.example.authservice.jwt.JwtTokenProvider;
 import com.example.authservice.jwt.TokenValidationResult;
 import com.example.authservice.repository.AuthRepository;
-import com.example.common.event.UserCreatedEvent;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,7 +26,6 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
     private final RedisService redisService;
-    private final UserEventPublisher userEventPublisher;
 
     // 일반 회원가입
     public SignupResponseDto createUser(SignupRequestDto request) {
@@ -76,13 +73,6 @@ public class AuthService {
         UserEntity saved = authRepository.save(user);
 
         // TODO: user-service로 일반 회원가입 이벤트 전송
-        userEventPublisher.sendUserCreatedEvent(
-                UserCreatedEvent.builder()
-                        .userId(saved.getUserId())
-                        .profileName(request.getProfileName())
-                        .bio(request.getBio())
-                        .build()
-        );
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
