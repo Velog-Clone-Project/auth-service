@@ -3,6 +3,8 @@ package com.example.authservice.service;
 import com.example.authservice.domain.UserEntity;
 import com.example.authservice.domain.UserType;
 import com.example.authservice.dto.*;
+import com.example.authservice.event.UserCreatedEvent;
+import com.example.authservice.event.UserEventPublisher;
 import com.example.authservice.exception.auth.InvalidCredentialsException;
 import com.example.authservice.exception.auth.SocialAccountLoginOnlyException;
 import com.example.authservice.exception.token.InvalidRefreshTokenException;
@@ -26,6 +28,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
     private final RedisService redisService;
+    private final UserEventPublisher userEventPublisher;
 
     // 일반 회원가입
     public SignupResponseDto createUser(SignupRequestDto request) {
@@ -72,7 +75,15 @@ public class AuthService {
         // ex) 만약 이후에 redis에 토큰 저장 중 에러가 발생하면, DB에는 회원 정보가 저장되지만 토큰은 저장되지 않고 요청이 실패하게 된다.
         UserEntity saved = authRepository.save(user);
 
-        // TODO: user-service로 일반 회원가입 이벤트 전송
+        // user-service로 일반 회원가입 이벤트 전송
+        userEventPublisher.sendUserCreatedEvent(
+                UserCreatedEvent.builder()
+                        .userId(saved.getUserId())
+                        .email(saved.getEmail())
+                        .profileName(request.getProfileName())
+                        .bio(request.getBio())
+                        .build()
+        );
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
@@ -112,9 +123,17 @@ public class AuthService {
                 .build();
 
         // TODO: 일반 회원가입과 마찬가지로 트랜잭션 분리 또는 보상 처리를 고려해야 함
-        authRepository.save(user);
+        UserEntity saved = authRepository.save(user);
 
-        // TODO: user-service로 소셜 회원가입 이벤트 전송
+        // user-service로 소셜 회원가입 이벤트 전송
+        userEventPublisher.sendUserCreatedEvent(
+                UserCreatedEvent.builder()
+                        .userId(saved.getUserId())
+                        .email(saved.getEmail())
+                        .profileName(request.getProfileName())
+                        .bio(request.getBio())
+                        .build()
+        );
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
@@ -194,30 +213,5 @@ public class AuthService {
         return new TokenResponseDto(newAccessToken, newRefreshToken);
     }
 
-    // 회원 탈퇴
-    @Transactional
-    public void withdrawUser(String userId) {
-        // soft delete 방식으로 회원 탈퇴 처리
-//       UserEntity user = authRepository.findByUserIdAndDeletedFalse(userId)
-//               .orElseThrow(() -> new UserNotFoundException());
-//
-//       if (user.isDeleted()) {
-//           throw new UserAlreadyDeletedException();
-//       }
-//
-//       user.setDeleted(true);
-//       // JPA dirty checking을 통해 자동으로 업데이트됨
 
-        // hard delete 방식으로 회원 탈퇴 처리
-
-        // 사용자 ID로 사용자 조회(없으면 예외 발생)
-        UserEntity user = authRepository.findByUserId(userId)
-                .orElseThrow(() -> new UserNotFoundException());
-
-        // DB에서 사용자 삭제
-        authRepository.delete(user);
-
-        // Redis에서 refreshToken 삭제
-        redisService.deleteRefreshToken(userId);
-    }
 }
