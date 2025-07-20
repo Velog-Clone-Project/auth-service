@@ -1,13 +1,11 @@
-name: Deploy Auth Service (on PR merge to main)
+name: Deploy Auth Service
 
 on:
-  pull_request:
-    types: [ closed ]
+  push:
     branches: [ main ]
 
 jobs:
-  deploy:
-    if: github.event.pull_request.merged == true
+  build:
     runs-on: [ self-hosted, auth-service ]
 
     steps:
@@ -29,6 +27,11 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean build
 
+  deploy:
+    runs-on: [ self-hosted, auth-service ]
+    needs: build
+
+    steps:
       - name: Build Docker image
         run: docker build -t ${{ secrets.DOCKER_USER }}/auth-service:latest .
 

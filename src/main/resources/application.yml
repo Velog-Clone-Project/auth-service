@@ -1,18 +1,12 @@
 server:
   port: 8001
 
-
 spring:
   application:
     name: auth-service
+
   config:
-#    import: optional:configserver:${CONFIG_SERVER_URL:http://config-service:8888} # telepresence
-      import: optional:configserver:${CONFIG_SERVER_URL:http://192.168.192.2:30088} # VPN - NodePort
+    import: optional:configserver:${CONFIG_SERVER_URL:http://192.168.192.2:30088} # VPN
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
-
-  rabbitmq:
-    host: rabbitmq
-    port: 5672
-    username: guest
-    password: guest
