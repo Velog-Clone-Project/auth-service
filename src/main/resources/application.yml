@@ -7,7 +7,7 @@ spring:
 
   config:
     #    import: optional:configserver:${CONFIG_SERVER_URL:http://192.168.192.2:30088} # VPN
-    import: optional:configserver:${CONFIG_SERVER_URL:http://config-service:8888} # VPN
+    import: optional:configserver:${CONFIG_SERVER_URL:http://config-service:8888} # Telepresence
 
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
